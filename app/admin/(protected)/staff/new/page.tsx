@@ -1,12 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/supabase-client';
 import type { Department } from '@/lib/types';
+import { colors, spacing } from '@/lib/design-tokens';
+
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+
+function validatePhoto(file: File): string | null {
+  if (!ALLOWED_TYPES.includes(file.type)) return 'Photo must be a JPG or PNG file.';
+  if (file.size > MAX_FILE_SIZE) return 'Photo exceeds the 2MB size limit.';
+  return null;
+}
 
 export default function NewStaffPage() {
-  const router = useRouter();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -15,9 +24,14 @@ export default function NewStaffPage() {
   const [role, setRole] = useState('');
   const [employmentDate, setEmploymentDate] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [signature, setSignature] = useState<File | null>(null);
+  const [signatureError, setSignatureError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdStaffId, setCreatedStaffId] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const supabase = getSupabaseBrowserClient();
@@ -30,6 +44,58 @@ export default function NewStaffPage() {
       });
   }, []);
 
+  const photoPreview = useMemo(() => (photo ? URL.createObjectURL(photo) : null), [photo]);
+
+  useEffect(() => {
+    return () => {
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+    };
+  }, [photoPreview]);
+
+  function applyPhotoFile(file: File | null) {
+    if (!file) {
+      setPhoto(null);
+      setPhotoError(null);
+      return;
+    }
+    const validationError = validatePhoto(file);
+    setPhotoError(validationError);
+    setPhoto(validationError ? null : file);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLLabelElement>) {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0] ?? null;
+    applyPhotoFile(file);
+  }
+
+  function handleSignatureChange(file: File | null) {
+    if (!file) {
+      setSignature(null);
+      setSignatureError(null);
+      return;
+    }
+    const validationError = validatePhoto(file);
+    setSignatureError(validationError);
+    setSignature(validationError ? null : file);
+  }
+
+  function resetForm() {
+    setFirstName('');
+    setLastName('');
+    setOtherNames('');
+    setDepartmentId('');
+    setRole('');
+    setEmploymentDate('');
+    setPhoto(null);
+    setSignature(null);
+    setPhotoError(null);
+    setSignatureError(null);
+    setCreatedStaffId(null);
+    setError(null);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -41,6 +107,10 @@ export default function NewStaffPage() {
     }
     if (!photo) {
       setError('A staff photo is required.');
+      return;
+    }
+    if (photoError || signatureError) {
+      setError('Please fix the highlighted file errors before submitting.');
       return;
     }
 
@@ -67,119 +137,220 @@ export default function NewStaffPage() {
         return;
       }
 
-      router.push('/admin/staff');
-      router.refresh();
+      setCreatedStaffId(body.staff?.staff_id_number ?? null);
+      setSubmitting(false);
     } catch {
       setError('Failed to create staff record.');
       setSubmitting(false);
     }
   }
 
+  if (createdStaffId) {
+    return (
+      <div>
+        <nav aria-label="Breadcrumb" className="breadcrumb">
+          <Link href="/admin/staff">Staff</Link>
+          <span aria-hidden="true">/</span>
+          <span className="current">New Staff</span>
+        </nav>
+
+        <div
+          role="status"
+          className="alert alert-success"
+          style={{ flexDirection: 'column', alignItems: 'flex-start', padding: spacing.xl, maxWidth: 420 }}
+        >
+          <p style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Staff ID created successfully</p>
+          <p style={{ margin: '8px 0 0', fontWeight: 400, fontFamily: 'var(--font-geist-mono)' }}>
+            {createdStaffId}
+          </p>
+          <div style={{ display: 'flex', gap: 12, marginTop: spacing.lg }}>
+            <button type="button" className="btn btn-primary" onClick={resetForm}>
+              Add another
+            </button>
+            <Link href="/admin/staff" className="btn btn-secondary">
+              Back to staff list
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0b3d91', marginBottom: 20 }}>New Staff</h1>
+      <nav aria-label="Breadcrumb" className="breadcrumb">
+        <Link href="/admin/staff">Staff</Link>
+        <span aria-hidden="true">/</span>
+        <span className="current">New Staff</span>
+      </nav>
+
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: colors.text, marginBottom: spacing.xl }}>
+        New Staff
+      </h1>
 
       <form
         onSubmit={handleSubmit}
         style={{
-          maxWidth: 420,
-          background: '#ffffff',
+          maxWidth: 440,
+          background: colors.surface,
           borderRadius: 8,
-          padding: 24,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
+          padding: spacing.xl,
         }}
       >
-        <label style={labelStyle}>First name</label>
-        <input value={firstName} onChange={(e) => setFirstName(e.target.value)} required style={inputStyle} />
+        <div className="field">
+          <label className="field-label" htmlFor="first-name">
+            First name
+          </label>
+          <input
+            id="first-name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            className="input"
+          />
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Last name</label>
-        <input value={lastName} onChange={(e) => setLastName(e.target.value)} required style={inputStyle} />
+        <div className="field">
+          <label className="field-label" htmlFor="last-name">
+            Last name
+          </label>
+          <input
+            id="last-name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            className="input"
+          />
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Other names</label>
-        <input value={otherNames} onChange={(e) => setOtherNames(e.target.value)} style={inputStyle} />
+        <div className="field">
+          <label className="field-label" htmlFor="other-names">
+            Other names
+          </label>
+          <input
+            id="other-names"
+            value={otherNames}
+            onChange={(e) => setOtherNames(e.target.value)}
+            className="input"
+          />
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Department</label>
-        <select
-          value={departmentId}
-          onChange={(e) => setDepartmentId(e.target.value)}
-          required
-          style={inputStyle}
-        >
-          <option value="">Select a department</option>
-          {departments.map((dept) => (
-            <option key={dept.id} value={dept.id}>
-              {dept.name}
-            </option>
-          ))}
-        </select>
+        <div className="field">
+          <label className="field-label" htmlFor="department">
+            Department
+          </label>
+          <select
+            id="department"
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
+            required
+            className="input"
+          >
+            <option value="">Select a department</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Role</label>
-        <input value={role} onChange={(e) => setRole(e.target.value)} required style={inputStyle} />
+        <div className="field">
+          <label className="field-label" htmlFor="role">
+            Role
+          </label>
+          <input id="role" value={role} onChange={(e) => setRole(e.target.value)} required className="input" />
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Employment date</label>
-        <input
-          type="date"
-          value={employmentDate}
-          onChange={(e) => setEmploymentDate(e.target.value)}
-          required
-          style={inputStyle}
-        />
+        <div className="field">
+          <label className="field-label" htmlFor="employment-date">
+            Employment date
+          </label>
+          <input
+            id="employment-date"
+            type="date"
+            value={employmentDate}
+            onChange={(e) => setEmploymentDate(e.target.value)}
+            required
+            className="input"
+          />
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Photo (JPG or PNG, max 2MB)</label>
-        <input
-          type="file"
-          accept="image/jpeg,image/png"
-          onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-          required
-          style={inputStyle}
-        />
+        <div className="field">
+          <span className="field-label" id="photo-caption">
+            Photo (JPG or PNG, max 2MB)
+          </span>
+          <label
+            htmlFor="photo-input"
+            className={`dropzone${isDragOver ? ' is-dragover' : ''}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={handleDrop}
+          >
+            {photoPreview ? (
+              // eslint-disable-next-line @next/next/no-img-element -- local object URL preview, not an optimizable remote asset
+              <img src={photoPreview} alt="Selected staff photo preview" className="dropzone-preview" />
+            ) : (
+              <div
+                role="img"
+                aria-label="No photo selected"
+                className="dropzone-preview"
+                style={{ background: colors.background }}
+              />
+            )}
+            <p id="photo-hint" style={{ margin: 0, fontSize: 13, color: colors.text, fontWeight: 600 }}>
+              {photo ? photo.name : 'Drag a photo here, or click to browse'}
+            </p>
+            <input
+              ref={photoInputRef}
+              id="photo-input"
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={(e) => applyPhotoFile(e.target.files?.[0] ?? null)}
+              className="visually-hidden"
+              aria-label="Staff photo"
+              aria-describedby="photo-caption photo-hint"
+            />
+          </label>
+          {photoError && (
+            <p role="alert" className="field-error">
+              {photoError}
+            </p>
+          )}
+        </div>
 
-        <label style={{ ...labelStyle, marginTop: 12 }}>Signature (optional)</label>
-        <input
-          type="file"
-          accept="image/jpeg,image/png"
-          onChange={(e) => setSignature(e.target.files?.[0] ?? null)}
-          style={inputStyle}
-        />
+        <div className="field">
+          <label className="field-label" htmlFor="signature-input">
+            Signature (optional)
+          </label>
+          <input
+            id="signature-input"
+            type="file"
+            accept="image/jpeg,image/png"
+            onChange={(e) => handleSignatureChange(e.target.files?.[0] ?? null)}
+            className="input"
+            aria-invalid={signatureError ? 'true' : undefined}
+          />
+          {signatureError && (
+            <p role="alert" className="field-error">
+              {signatureError}
+            </p>
+          )}
+        </div>
 
-        {error && <p style={{ color: '#b91c1c', fontSize: 13, marginTop: 12, marginBottom: 0 }}>{error}</p>}
+        {error && (
+          <p role="alert" className="alert alert-error" style={{ marginTop: spacing.lg }}>
+            {error}
+          </p>
+        )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          style={{
-            marginTop: 20,
-            background: '#0b3d91',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: 4,
-            padding: '10px 0',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: submitting ? 'default' : 'pointer',
-            opacity: submitting ? 0.7 : 1,
-          }}
-        >
+        <button type="submit" disabled={submitting} className="btn btn-primary" style={{ width: '100%', marginTop: spacing.lg }}>
           {submitting ? 'Creating…' : 'Create staff ID'}
         </button>
       </form>
     </div>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 12,
-  fontWeight: 700,
-  color: '#1c2628',
-  marginBottom: 4,
-};
-
-const inputStyle: React.CSSProperties = {
-  border: '1px solid #b4b4b4',
-  borderRadius: 4,
-  padding: '8px 10px',
-  fontSize: 14,
-  color: '#1c2628',
-};

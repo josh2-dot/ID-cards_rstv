@@ -17,19 +17,7 @@ export function LogoutButton() {
   }
 
   return (
-    <button
-      onClick={handleLogout}
-      disabled={loading}
-      style={{
-        background: 'transparent',
-        border: '1px solid rgba(255,255,255,0.4)',
-        color: '#ffffff',
-        borderRadius: 4,
-        padding: '6px 14px',
-        fontSize: 13,
-        cursor: loading ? 'default' : 'pointer',
-      }}
-    >
+    <button onClick={handleLogout} disabled={loading} className="btn btn-ghost btn-sm">
       {loading ? 'Signing out…' : 'Log out'}
     </button>
   );
