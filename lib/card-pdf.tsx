@@ -1,9 +1,10 @@
 import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
+import { colors, cardPdf, spacing, typography } from './design-tokens';
 
 // FPDF-style card size: 54mm x 86mm, converted to points (1mm = 2.83465pt)
 const MM_TO_PT = 2.83465;
-export const CARD_WIDTH = 54 * MM_TO_PT; // ~153.07pt
-export const CARD_HEIGHT = 86 * MM_TO_PT; // ~243.78pt
+export const CARD_WIDTH = cardPdf.widthMm * MM_TO_PT; // ~153.07pt
+export const CARD_HEIGHT = cardPdf.heightMm * MM_TO_PT; // ~243.78pt
 
 export interface StaffCardData {
   fullName: string;
@@ -21,100 +22,139 @@ const styles = StyleSheet.create({
   page: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
+    fontFamily: typography.fontFamilyPdf,
   },
   header: {
-    backgroundColor: '#0b3d91',
-    paddingVertical: 10,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   headerText: {
-    color: '#ffffff',
-    fontSize: 14,
+    color: colors.white,
+    fontSize: 13,
     fontWeight: 700,
     letterSpacing: 1,
   },
   subHeaderText: {
-    color: '#0b3d91',
-    fontSize: 7,
+    color: colors.primary,
+    fontSize: 6.5,
     fontWeight: 700,
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: spacing.xs,
     letterSpacing: 0.5,
+  },
+  fullName: {
+    fontSize: 15,
+    fontWeight: 700,
+    textAlign: 'center',
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    color: colors.text,
   },
   photoWrap: {
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: spacing.sm,
   },
   photo: {
-    width: 68,
-    height: 76,
+    width: 64,
+    height: 72,
     objectFit: 'cover',
     borderWidth: 1,
-    borderColor: '#b4b4b4',
+    borderColor: colors.border,
   },
   photoPlaceholder: {
-    width: 68,
-    height: 76,
+    width: 64,
+    height: 72,
     borderWidth: 1,
-    borderColor: '#b4b4b4',
-    backgroundColor: '#f0f0f0',
-  },
-  fullName: {
-    fontSize: 10,
-    fontWeight: 700,
-    textAlign: 'center',
-    marginTop: 8,
-    color: '#1c2628',
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
   },
   sigWrap: {
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: spacing.xs,
   },
   signature: {
-    width: 50,
-    height: 18,
+    width: 46,
+    height: 16,
     objectFit: 'contain',
   },
   sigLabel: {
-    fontSize: 6,
-    color: '#1c2628',
+    fontSize: 5.5,
+    color: colors.text,
     marginTop: 2,
   },
-  infoBlock: {
-    marginTop: 8,
-    paddingHorizontal: 10,
+  // ---- Staff ID hero block: the number's own tinted, monospaced block ----
+  idHero: {
+    marginTop: spacing.sm,
+    marginHorizontal: spacing.sm,
+    backgroundColor: colors.accentLight,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    paddingVertical: spacing.xs,
+    alignItems: 'center',
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#0b3d91',
-    borderRadius: 3,
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    marginBottom: 3,
+  idHeroLabel: {
+    fontSize: 6,
+    fontWeight: 700,
+    color: colors.accentDark,
+    letterSpacing: 1,
   },
-  infoLabel: { color: '#ffffff', fontSize: 6.5, fontWeight: 700 },
-  infoValue: { color: '#ffffff', fontSize: 6.5, fontWeight: 700 },
+  idHeroValue: {
+    fontFamily: 'Courier-Bold',
+    fontSize: 13,
+    fontWeight: 700,
+    color: colors.text,
+    marginTop: 1,
+  },
+  // ---- Plain text row replacing the five stacked navy pills ----
+  detailRow: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    fontSize: 7,
+    textAlign: 'center',
+    color: colors.text,
+    lineHeight: 1.4,
+  },
+  validUntilRow: {
+    marginTop: 2,
+    paddingHorizontal: spacing.sm,
+    fontSize: 7,
+    fontWeight: 700,
+    textAlign: 'center',
+    color: colors.accentDark,
+  },
+  flipNote: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    left: 0,
+    right: 0,
+    fontSize: 6,
+    textAlign: 'center',
+    color: colors.textMuted,
+    letterSpacing: 0.5,
+  },
   backPage: {
-    padding: 14,
+    padding: spacing.md,
     alignItems: 'center',
   },
   qr: {
     width: 68,
     height: 68,
-    marginTop: 14,
+    marginTop: spacing.lg,
   },
-  scanText: { fontSize: 7, marginTop: 5, color: '#1c2628', fontWeight: 700 },
+  scanText: { fontSize: 7, marginTop: spacing.xs, color: colors.text, fontWeight: 700 },
   disclaimer: {
-    fontSize: 6,
-    marginTop: 16,
+    fontSize: 7.5,
+    marginTop: spacing.lg,
     textAlign: 'center',
-    color: '#1c2628',
+    color: colors.text,
     lineHeight: 1.5,
+    paddingHorizontal: spacing.sm,
   },
-  addressTitle: { fontSize: 8, fontWeight: 700, marginTop: 18, textAlign: 'center', color: '#1c2628' },
-  addressLine: { fontSize: 6, textAlign: 'center', color: '#1c2628', marginTop: 2 },
+  addressTitle: { fontSize: 8, fontWeight: 700, marginTop: spacing.lg, textAlign: 'center', color: colors.text },
+  addressLine: { fontSize: 7, textAlign: 'center', color: colors.text, marginTop: 2 },
 });
 
 export function StaffIdCardDocument({ data }: { data: StaffCardData }) {
@@ -127,6 +167,8 @@ export function StaffIdCardDocument({ data }: { data: StaffCardData }) {
         </View>
         <Text style={styles.subHeaderText}>STAFF IDENTITY CARD</Text>
 
+        <Text style={styles.fullName}>{data.fullName.toUpperCase()}</Text>
+
         <View style={styles.photoWrap}>
           {data.photoDataUri ? (
             <Image src={data.photoDataUri} style={styles.photo} />
@@ -135,8 +177,6 @@ export function StaffIdCardDocument({ data }: { data: StaffCardData }) {
           )}
         </View>
 
-        <Text style={styles.fullName}>{data.fullName.toUpperCase()}</Text>
-
         {data.signatureDataUri && (
           <View style={styles.sigWrap}>
             <Image src={data.signatureDataUri} style={styles.signature} />
@@ -144,30 +184,17 @@ export function StaffIdCardDocument({ data }: { data: StaffCardData }) {
           </View>
         )}
 
-        <View style={styles.infoBlock}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>STAFF ID:</Text>
-            <Text style={styles.infoValue}>{data.staffIdNumber}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>DEPT:</Text>
-            <Text style={styles.infoValue}>{data.department}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>ROLE:</Text>
-            <Text style={styles.infoValue}>{data.role}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>SINCE:</Text>
-            <Text style={styles.infoValue}>{data.employmentDate}</Text>
-          </View>
-          {data.expiresAt && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>VALID UNTIL:</Text>
-              <Text style={styles.infoValue}>{data.expiresAt}</Text>
-            </View>
-          )}
+        <View style={styles.idHero}>
+          <Text style={styles.idHeroLabel}>STAFF ID</Text>
+          <Text style={styles.idHeroValue}>{data.staffIdNumber}</Text>
         </View>
+
+        <Text style={styles.detailRow}>
+          {data.department} · {data.role} · Since {data.employmentDate}
+        </Text>
+        {data.expiresAt && <Text style={styles.validUntilRow}>Valid until {data.expiresAt}</Text>}
+
+        <Text style={styles.flipNote}>FLIP TO SCAN →</Text>
       </Page>
 
       {/* ---- BACK ---- */}

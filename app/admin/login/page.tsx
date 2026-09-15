@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/supabase-client';
+import { colors, radius, shadow, spacing } from '@/lib/design-tokens';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -30,89 +32,111 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div
+    <main
       style={{
-        minHeight: '100vh',
+        flex: 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#f0f0f0',
+        background: colors.background,
+        padding: spacing.lg,
       }}
     >
       <form
         onSubmit={handleSubmit}
+        aria-labelledby="login-heading"
         style={{
-          width: 340,
-          background: '#ffffff',
-          borderRadius: 8,
-          padding: 32,
-          boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
+          width: '100%',
+          maxWidth: 360,
+          background: colors.surface,
+          borderRadius: radius.lg,
+          padding: spacing.xl,
+          boxShadow: shadow.md,
         }}
       >
-        <h1 style={{ fontSize: 18, fontWeight: 700, color: '#0b3d91', margin: 0 }}>RSTV Admin</h1>
-        <p style={{ fontSize: 13, color: '#1c2628', margin: '4px 0 16px' }}>
-          Sign in to manage staff ID records.
-        </p>
-
-        <label style={labelStyle}>Email</label>
-        <input
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
-        />
-
-        <label style={{ ...labelStyle, marginTop: 12 }}>Password</label>
-        <input
-          type="password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-        />
-
-        {error && (
-          <p style={{ color: '#b91c1c', fontSize: 13, marginTop: 12, marginBottom: 0 }}>{error}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
+        <Link
+          href="/"
           style={{
-            marginTop: 20,
-            background: '#0b3d91',
-            color: '#ffffff',
-            border: 'none',
-            borderRadius: 4,
-            padding: '10px 0',
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: loading ? 'default' : 'pointer',
-            opacity: loading ? 0.7 : 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            textDecoration: 'none',
+            marginBottom: spacing.lg,
+            borderRadius: radius.sm,
           }}
         >
+          <span
+            aria-hidden="true"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: radius.sm,
+              background: colors.primary,
+              color: colors.textOnPrimary,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              fontSize: 13,
+            }}
+          >
+            RS
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>RSTV Admin</span>
+        </Link>
+
+        <h1
+          id="login-heading"
+          style={{ fontSize: 20, fontWeight: 700, color: colors.primary, margin: 0 }}
+        >
+          Sign in
+        </h1>
+        <p style={{ fontSize: 13, color: colors.textMuted, margin: '4px 0 0' }}>
+          Manage staff ID records for RSTV.
+        </p>
+
+        <div className="field">
+          <label className="field-label" htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input"
+          />
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="password">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input"
+          />
+        </div>
+
+        {error && (
+          <p role="alert" className="alert alert-error" style={{ marginTop: spacing.md }}>
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', marginTop: spacing.lg }}>
           {loading ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
-    </div>
+    </main>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 12,
-  fontWeight: 700,
-  color: '#1c2628',
-  marginBottom: 4,
-};
-
-const inputStyle: React.CSSProperties = {
-  border: '1px solid #b4b4b4',
-  borderRadius: 4,
-  padding: '8px 10px',
-  fontSize: 14,
-  color: '#1c2628',
-};

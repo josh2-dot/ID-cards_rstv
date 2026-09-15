@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { StaffTable, type StaffRow } from './staff-table';
 import type { Department } from '@/lib/types';
+import { colors, spacing } from '@/lib/design-tokens';
 
 interface StaffQueryRow {
   id: string;
@@ -68,20 +69,22 @@ export default async function AdminStaffPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0b3d91', margin: 0 }}>Staff</h1>
-        <Link
-          href="/admin/staff/new"
-          style={{
-            background: '#0b3d91',
-            color: '#ffffff',
-            borderRadius: 4,
-            padding: '8px 16px',
-            fontSize: 13,
-            fontWeight: 700,
-            textDecoration: 'none',
-          }}
-        >
+      <nav aria-label="Breadcrumb" className="breadcrumb">
+        <Link href="/admin/staff">Staff</Link>
+      </nav>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: spacing.md,
+          flexWrap: 'wrap',
+          marginBottom: spacing.xl,
+        }}
+      >
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: colors.text, margin: 0 }}>Staff</h1>
+        <Link href="/admin/staff/new" className="btn btn-primary">
           + New Staff
         </Link>
       </div>
