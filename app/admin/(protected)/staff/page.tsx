@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getCurrentOrganization } from '@/lib/get-current-organization';
 import { StaffTable, type StaffRow } from './staff-table';
 import type { Department } from '@/lib/types';
 import { colors, spacing } from '@/lib/design-tokens';
@@ -15,7 +17,7 @@ interface StaffQueryRow {
   departments: { name: string } | null;
 }
 
-async function getStaffAndDepartments(): Promise<{
+async function getStaffAndDepartments(organizationId: string): Promise<{
   staff: StaffRow[];
   departments: Department[];
 }> {
@@ -25,8 +27,13 @@ async function getStaffAndDepartments(): Promise<{
     supabase
       .from('staff')
       .select('id, first_name, last_name, staff_id_number, role, status, photo_path, departments(name)')
+      .eq('organization_id', organizationId)
       .order('created_at', { ascending: false }),
-    supabase.from('departments').select('id, name, code').order('name'),
+    supabase
+      .from('departments')
+      .select('id, name, code')
+      .eq('organization_id', organizationId)
+      .order('name'),
   ]);
 
   if (staffResult.error) {
@@ -65,7 +72,12 @@ async function getStaffAndDepartments(): Promise<{
 }
 
 export default async function AdminStaffPage() {
-  const { staff, departments } = await getStaffAndDepartments();
+  const organization = await getCurrentOrganization();
+  if (!organization) {
+    redirect('/admin/login');
+  }
+
+  const { staff, departments } = await getStaffAndDepartments(organization.id);
 
   return (
     <div>

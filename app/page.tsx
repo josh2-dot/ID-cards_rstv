@@ -29,7 +29,7 @@ export default function Home() {
             marginBottom: spacing.lg,
           }}
         >
-          RSTV
+          STAFF ID SYSTEM
         </span>
 
         <h1
@@ -42,7 +42,7 @@ export default function Home() {
             letterSpacing: 0.5,
           }}
         >
-          RSTV STAFF ID SYSTEM
+          STAFF ID SYSTEM
         </h1>
 
         <p
@@ -53,8 +53,8 @@ export default function Home() {
             color: colors.textMuted,
           }}
         >
-          Issue, manage, and verify staff identification cards for Rivers
-          State Television. Admins create and revoke ID records; anyone can
+          Issue, manage, and verify staff identification cards for your
+          organization. Admins create and revoke ID records; anyone can
           confirm a card is genuine by scanning its QR code.
         </p>
 

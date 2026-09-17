@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getCurrentOrganization } from '@/lib/get-current-organization';
 
 export async function PATCH(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const organization = await getCurrentOrganization();
+    if (!organization) {
+      return NextResponse.json(
+        { success: false, message: 'Not authenticated.' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
 
     const supabase = getSupabaseServerClient();
@@ -14,6 +23,7 @@ export async function PATCH(
       .from('staff')
       .update({ status: 'revoked' })
       .eq('id', id)
+      .eq('organization_id', organization.id)
       .select()
       .single();
 

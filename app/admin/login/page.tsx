@@ -80,9 +80,9 @@ export default function AdminLoginPage() {
               fontSize: 13,
             }}
           >
-            RS
+            ID
           </span>
-          <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>RSTV Admin</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: colors.text }}>Staff ID System</span>
         </Link>
 
         <h1
@@ -92,7 +92,7 @@ export default function AdminLoginPage() {
           Sign in
         </h1>
         <p style={{ fontSize: 13, color: colors.textMuted, margin: '4px 0 0' }}>
-          Manage staff ID records for RSTV.
+          Sign in to manage your organization&apos;s staff ID records.
         </p>
 
         <div className="field">

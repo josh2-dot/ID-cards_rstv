@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RSTV Staff ID System",
+  title: "Staff ID System",
   description:
-    "Issue, manage, and verify RSTV staff identity cards — admin portal and public card verification.",
+    "Issue, manage, and verify staff identity cards — admin portal and public card verification.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

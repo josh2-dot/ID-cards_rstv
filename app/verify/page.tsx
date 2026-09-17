@@ -9,6 +9,8 @@ export default async function VerifyPage({
 }) {
   const { id } = await searchParams;
   const result = id ? await verifyStaffId(id) : null;
+  const organization = result?.success ? result.staff?.organization ?? null : null;
+  const brandColor = organization?.primary_color ?? colors.primary;
 
   return (
     <main
@@ -35,9 +37,9 @@ export default async function VerifyPage({
         <Link
           href="/"
           className="header-link"
-          style={{ color: colors.primary, textDecoration: 'none', fontWeight: 700, fontSize: 18 }}
+          style={{ color: brandColor, textDecoration: 'none', fontWeight: 700, fontSize: 18 }}
         >
-          RSTV
+          {organization?.name ?? 'Staff ID System'}
         </Link>
         <p style={{ fontSize: 12, color: colors.textMuted, marginTop: 4, marginBottom: spacing.xl }}>
           Staff ID Verification

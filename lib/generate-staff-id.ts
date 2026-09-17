@@ -2,19 +2,27 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * Generates the next staff ID number in the format:
- *   RSTV-<DEPT_CODE>-<YEAR>-<SEQUENCE>
+ *   <ORG_SLUG>-<DEPT_CODE>-<YEAR>-<SEQUENCE>
  *   e.g. RSTV-ENG-2026-0032
  *
- * Uses the `next_staff_seq` Postgres function so the counter
- * increments atomically even under concurrent requests.
+ * The prefix comes from the organization's slug (uppercased) rather than a
+ * fixed literal, so each tenant gets its own ID scheme -- RStV's slug is
+ * "rstv", so its IDs keep the same RSTV- prefix they've always had.
+ *
+ * Uses the `next_staff_seq` Postgres function so the counter increments
+ * atomically per organization+department+year, even under concurrent
+ * requests.
  */
 export async function generateStaffIdNumber(
   supabase: SupabaseClient,
+  organizationId: string,
+  organizationSlug: string,
   departmentCode: string
 ): Promise<string> {
   const year = new Date().getFullYear();
 
   const { data, error } = await supabase.rpc('next_staff_seq', {
+    p_organization_id: organizationId,
     dept_code: departmentCode,
     yr: year,
   });
@@ -24,5 +32,6 @@ export async function generateStaffIdNumber(
   }
 
   const seq = String(data).padStart(4, '0');
-  return `RSTV-${departmentCode}-${year}-${seq}`;
+  const prefix = organizationSlug.toUpperCase();
+  return `${prefix}-${departmentCode}-${year}-${seq}`;
 }

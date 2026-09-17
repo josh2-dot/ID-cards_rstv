@@ -1,15 +1,15 @@
 /**
- * Single source of truth for the RSTV Staff ID System's visual language —
- * colors, type scale, spacing, radius, and shadows.
+ * Single source of truth for this platform's default visual language —
+ * colors, type scale, spacing, radius, and shadows. These are the
+ * fallback values used wherever an organization hasn't set its own
+ * `primary_color` (or for pages, like the public landing/login screens,
+ * that aren't tied to any one organization).
  *
  * Imported directly by:
  *  - Web components (inline styles / className hooks into the mirrored CSS
  *    variables in app/globals.css)
  *  - lib/card-pdf.tsx (via @react-pdf/renderer's StyleSheet.create, which
  *    cannot read CSS custom properties — it needs plain JS values)
- *
- * Rebranding the org (new navy, new accent, a type-scale bump) means editing
- * values here once; every screen and the printed ID card pick it up.
  *
  * NOTE: app/globals.css mirrors `colors`/`spacing`/`radius`/`shadow` below as
  * CSS custom properties so Tailwind utilities and plain CSS can use them too.

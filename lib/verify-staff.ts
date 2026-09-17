@@ -11,6 +11,7 @@ export interface VerifyResult {
     full_name: string;
     role: string;
     department: { name: string; code: string } | null;
+    organization: { name: string; logo_url: string | null; primary_color: string | null } | null;
   };
 }
 
@@ -30,7 +31,9 @@ export async function verifyStaffId(rawId: string): Promise<VerifyResult> {
 
   const { data: staff, error } = await supabase
     .from('staff')
-    .select('staff_id_number, first_name, last_name, role, status, expires_at, departments(name, code)')
+    .select(
+      'staff_id_number, first_name, last_name, role, status, expires_at, departments(name, code), organizations(name, logo_url, primary_color)'
+    )
     .eq('staff_id_number', staffIdNumber)
     .single();
 
@@ -51,6 +54,12 @@ export async function verifyStaffId(rawId: string): Promise<VerifyResult> {
       full_name: `${staff.first_name} ${staff.last_name}`,
       role: staff.role,
       department: (staff.departments as unknown as { name: string; code: string } | null) ?? null,
+      organization:
+        (staff.organizations as unknown as {
+          name: string;
+          logo_url: string | null;
+          primary_color: string | null;
+        } | null) ?? null,
     },
   };
 }

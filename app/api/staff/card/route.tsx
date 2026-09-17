@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
 
     const { data: staff, error } = await supabase
       .from('staff')
-      .select('*, departments(name, code)')
+      .select('*, departments(name, code), organizations(name, logo_url, primary_color)')
       .eq('staff_id_number', staffIdNumber)
       .single();
 
@@ -82,6 +82,9 @@ export async function GET(req: NextRequest) {
       photoDataUri,
       signatureDataUri,
       qrDataUri,
+      organizationName: staff.organizations?.name ?? 'Staff ID System',
+      organizationLogoUrl: staff.organizations?.logo_url ?? null,
+      organizationPrimaryColor: staff.organizations?.primary_color ?? null,
     };
 
     const pdfBuffer = await renderToBuffer(<StaffIdCardDocument data={cardData} />);
@@ -90,7 +93,7 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="RSTV_ID_${staff.staff_id_number}.pdf"`,
+        'Content-Disposition': `attachment; filename="ID_${staff.staff_id_number}.pdf"`,
       },
     });
   } catch (err) {

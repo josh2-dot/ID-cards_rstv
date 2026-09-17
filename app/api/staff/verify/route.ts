@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
 
     const { data: staff, error } = await supabase
       .from('staff')
-      .select('staff_id_number, first_name, last_name, role, status, expires_at, departments(name, code)')
+      .select(
+        'staff_id_number, first_name, last_name, role, status, expires_at, departments(name, code), organizations(name, logo_url, primary_color)'
+      )
       .eq('staff_id_number', staffIdNumber)
       .single();
 
@@ -41,6 +43,7 @@ export async function POST(req: NextRequest) {
         full_name: `${staff.first_name} ${staff.last_name}`,
         role: staff.role,
         department: staff.departments,
+        organization: staff.organizations,
       },
     });
   } catch (err) {

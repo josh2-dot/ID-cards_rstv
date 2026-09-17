@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getSupabaseSessionClient } from '@/lib/supabase-session-server';
+import { getCurrentOrganization } from '@/lib/get-current-organization';
 import { LogoutButton } from './logout-button';
 import { colors, spacing } from '@/lib/design-tokens';
 
@@ -9,12 +9,13 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await getSupabaseSessionClient();
-  const { data } = await supabase.auth.getUser();
+  const organization = await getCurrentOrganization();
 
-  if (!data.user) {
+  if (!organization) {
     redirect('/admin/login');
   }
+
+  const headerColor = organization.primaryColor ?? colors.primary;
 
   return (
     <div style={{ minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -24,7 +25,7 @@ export default async function AdminLayout({
 
       <header
         style={{
-          background: colors.primary,
+          background: headerColor,
           color: colors.textOnPrimary,
           padding: `${spacing.md}px ${spacing.xl}px`,
           display: 'flex',
@@ -45,23 +46,34 @@ export default async function AdminLayout({
             borderRadius: 4,
           }}
         >
-          <span
-            aria-hidden="true"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 4,
-              background: 'rgba(255,255,255,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: 12,
-            }}
-          >
-            RS
-          </span>
-          <span style={{ fontWeight: 700, letterSpacing: 0.5 }}>RSTV Admin</span>
+          {organization.logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- org-supplied logo, arbitrary external host
+            <img
+              src={organization.logoUrl}
+              alt={`${organization.name} logo`}
+              width={28}
+              height={28}
+              style={{ borderRadius: 4, objectFit: 'cover' }}
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 4,
+                background: 'rgba(255,255,255,0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: 12,
+              }}
+            >
+              {organization.name.trim().slice(0, 2).toUpperCase()}
+            </span>
+          )}
+          <span style={{ fontWeight: 700, letterSpacing: 0.5 }}>{organization.name} Admin</span>
         </Link>
 
         <nav aria-label="Admin" style={{ display: 'flex', alignItems: 'center', gap: spacing.lg }}>

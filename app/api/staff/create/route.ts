@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
+import { getCurrentOrganization } from '@/lib/get-current-organization';
 import { generateStaffIdNumber } from '@/lib/generate-staff-id';
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
@@ -11,6 +12,14 @@ function isValidName(value: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    const organization = await getCurrentOrganization();
+    if (!organization) {
+      return NextResponse.json(
+        { success: false, message: 'Not authenticated.' },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
 
     const firstName = String(formData.get('first_name') ?? '').trim();
@@ -108,12 +117,18 @@ export async function POST(req: NextRequest) {
     }
 
     // ---- Generate the staff ID number ----
-    const staffIdNumber = await generateStaffIdNumber(supabase, departmentCode);
+    const staffIdNumber = await generateStaffIdNumber(
+      supabase,
+      organization.id,
+      organization.slug,
+      departmentCode
+    );
 
     // ---- Insert the record ----
     const { data, error } = await supabase
       .from('staff')
       .insert({
+        organization_id: organization.id,
         first_name: firstName,
         last_name: lastName,
         other_names: otherNames || null,

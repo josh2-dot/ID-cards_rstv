@@ -16,6 +16,9 @@ export interface StaffCardData {
   photoDataUri?: string | null;
   signatureDataUri?: string | null;
   qrDataUri: string;
+  organizationName: string;
+  organizationLogoUrl?: string | null;
+  organizationPrimaryColor?: string | null;
 }
 
 const styles = StyleSheet.create({
@@ -29,6 +32,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: spacing.sm,
     alignItems: 'center',
+  },
+  headerLogo: {
+    width: 16,
+    height: 16,
+    marginBottom: 2,
   },
   headerText: {
     color: colors.white,
@@ -153,17 +161,23 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
     paddingHorizontal: spacing.sm,
   },
-  addressTitle: { fontSize: 8, fontWeight: 700, marginTop: spacing.lg, textAlign: 'center', color: colors.text },
-  addressLine: { fontSize: 7, textAlign: 'center', color: colors.text, marginTop: 2 },
+  footerOrgName: { fontSize: 8, fontWeight: 700, marginTop: spacing.lg, textAlign: 'center', color: colors.text },
 });
 
 export function StaffIdCardDocument({ data }: { data: StaffCardData }) {
+  const headerStyle = data.organizationPrimaryColor
+    ? [styles.header, { backgroundColor: data.organizationPrimaryColor }]
+    : styles.header;
+
   return (
     <Document>
       {/* ---- FRONT ---- */}
       <Page size={[CARD_WIDTH, CARD_HEIGHT]} style={styles.page}>
-        <View style={styles.header}>
-          <Text style={styles.headerText}>RSTV</Text>
+        <View style={headerStyle}>
+          {data.organizationLogoUrl && (
+            <Image src={data.organizationLogoUrl} style={styles.headerLogo} />
+          )}
+          <Text style={styles.headerText}>{data.organizationName.toUpperCase()}</Text>
         </View>
         <Text style={styles.subHeaderText}>STAFF IDENTITY CARD</Text>
 
@@ -204,12 +218,11 @@ export function StaffIdCardDocument({ data }: { data: StaffCardData }) {
 
         <Text style={styles.disclaimer}>
           This card identifies the holder whose name and photograph appear on
-          the front. It remains RStV property and must be surrendered upon
-          request or on end of employment.
+          the front. It remains {data.organizationName} property and must be
+          surrendered upon request or on end of employment.
         </Text>
 
-        <Text style={styles.addressTitle}>RStV</Text>
-        <Text style={styles.addressLine}>Port Harcourt, Rivers State</Text>
+        <Text style={styles.footerOrgName}>{data.organizationName}</Text>
       </Page>
     </Document>
   );
