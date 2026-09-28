@@ -20,8 +20,11 @@ export default function NewStaffPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [otherNames, setOtherNames] = useState('');
+  const [badgeNumber, setBadgeNumber] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [role, setRole] = useState('');
+  const [postingLocation, setPostingLocation] = useState('');
+  const [phone, setPhone] = useState('');
   const [employmentDate, setEmploymentDate] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -85,8 +88,11 @@ export default function NewStaffPage() {
     setFirstName('');
     setLastName('');
     setOtherNames('');
+    setBadgeNumber('');
     setDepartmentId('');
     setRole('');
+    setPostingLocation('');
+    setPhone('');
     setEmploymentDate('');
     setPhoto(null);
     setSignature(null);
@@ -120,9 +126,12 @@ export default function NewStaffPage() {
     formData.set('first_name', firstName);
     formData.set('last_name', lastName);
     formData.set('other_names', otherNames);
+    formData.set('badge_number', badgeNumber);
     formData.set('department_id', department.id);
     formData.set('department_code', department.code);
     formData.set('role', role);
+    formData.set('posting_location', postingLocation);
+    formData.set('phone', phone);
     formData.set('employment_date', employmentDate);
     formData.set('photo', photo);
     if (signature) formData.set('signature', signature);
@@ -236,6 +245,20 @@ export default function NewStaffPage() {
         </div>
 
         <div className="field">
+          <label className="field-label" htmlFor="badge-number">
+            Badge number (optional)
+          </label>
+          <input
+            id="badge-number"
+            value={badgeNumber}
+            onChange={(e) => setBadgeNumber(e.target.value)}
+            placeholder="Leave blank to auto-generate"
+            className="input"
+            style={{ fontFamily: 'var(--font-geist-mono)' }}
+          />
+        </div>
+
+        <div className="field">
           <label className="field-label" htmlFor="department">
             Department
           </label>
@@ -260,6 +283,31 @@ export default function NewStaffPage() {
             Role
           </label>
           <input id="role" value={role} onChange={(e) => setRole(e.target.value)} required className="input" />
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="posting-location">
+            Posting location
+          </label>
+          <input
+            id="posting-location"
+            value={postingLocation}
+            onChange={(e) => setPostingLocation(e.target.value)}
+            className="input"
+          />
+        </div>
+
+        <div className="field">
+          <label className="field-label" htmlFor="phone">
+            Phone number
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="input"
+          />
         </div>
 
         <div className="field">

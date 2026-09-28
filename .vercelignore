@@ -1,0 +1,12 @@
+# Claude Code's own local session/transcript data -- unrelated to this
+# app, not meant to be uploaded anywhere, and can grow to hundreds of MB.
+.claude/
+
+# Standard build/dependency output -- Vercel installs and builds fresh.
+node_modules/
+.next/
+
+# Never upload local env files; secrets are set via Vercel's own env vars.
+.env
+.env.local
+.env*.local

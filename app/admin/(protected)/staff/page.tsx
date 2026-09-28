@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 import { getCurrentOrganization } from '@/lib/get-current-organization';
 import { StaffTable, type StaffRow } from './staff-table';
-import type { Department } from '@/lib/types';
+import type { CustomField, Department } from '@/lib/types';
 import { colors, spacing } from '@/lib/design-tokens';
 
 interface StaffQueryRow {
@@ -12,6 +12,8 @@ interface StaffQueryRow {
   last_name: string;
   staff_id_number: string;
   role: string;
+  posting_location: string | null;
+  phone: string | null;
   status: 'active' | 'revoked' | 'expired';
   photo_path: string | null;
   departments: { name: string } | null;
@@ -26,7 +28,9 @@ async function getStaffAndDepartments(organizationId: string): Promise<{
   const [staffResult, departmentsResult] = await Promise.all([
     supabase
       .from('staff')
-      .select('id, first_name, last_name, staff_id_number, role, status, photo_path, departments(name)')
+      .select(
+        'id, first_name, last_name, staff_id_number, role, posting_location, phone, status, photo_path, departments(name)'
+      )
       .eq('organization_id', organizationId)
       .order('created_at', { ascending: false }),
     supabase
@@ -45,6 +49,27 @@ async function getStaffAndDepartments(organizationId: string): Promise<{
 
   const rows = (staffResult.data ?? []) as unknown as StaffQueryRow[];
 
+  const staffIds = rows.map((row) => row.id);
+  const customFieldsByStaffId = new Map<string, CustomField[]>();
+
+  if (staffIds.length > 0) {
+    const { data: customFieldRows, error: customFieldsError } = await supabase
+      .from('staff_custom_fields')
+      .select('id, staff_id, field_name, field_value')
+      .in('staff_id', staffIds)
+      .order('created_at', { ascending: true });
+
+    if (customFieldsError) {
+      throw new Error(`Failed to load custom fields: ${customFieldsError.message}`);
+    }
+
+    for (const field of (customFieldRows ?? []) as CustomField[]) {
+      const existing = customFieldsByStaffId.get(field.staff_id) ?? [];
+      existing.push(field);
+      customFieldsByStaffId.set(field.staff_id, existing);
+    }
+  }
+
   const staff: StaffRow[] = await Promise.all(
     rows.map(async (row) => {
       let photoUrl: string | null = null;
@@ -62,8 +87,11 @@ async function getStaffAndDepartments(organizationId: string): Promise<{
         staffIdNumber: row.staff_id_number,
         department: row.departments?.name ?? '—',
         role: row.role,
+        postingLocation: row.posting_location,
+        phone: row.phone,
         status: row.status,
         photoUrl,
+        customFields: customFieldsByStaffId.get(row.id) ?? [],
       };
     })
   );

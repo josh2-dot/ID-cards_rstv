@@ -14,6 +14,8 @@ export interface Staff {
   staff_id_number: string;
   department_id: string;
   role: string;
+  posting_location?: string | null;
+  phone?: string | null;
   employment_date: string;
   photo_path?: string | null;
   signature_path?: string | null;
@@ -22,4 +24,20 @@ export interface Staff {
   expires_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface RankHistoryEntry {
+  id: string;
+  staff_id: string;
+  previous_role: string;
+  new_role: string;
+  changed_at: string;
+  changed_by: string | null;
+}
+
+export interface CustomField {
+  id: string;
+  staff_id: string;
+  field_name: string;
+  field_value: string | null;
 }

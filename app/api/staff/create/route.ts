@@ -25,9 +25,12 @@ export async function POST(req: NextRequest) {
     const firstName = String(formData.get('first_name') ?? '').trim();
     const lastName = String(formData.get('last_name') ?? '').trim();
     const otherNames = String(formData.get('other_names') ?? '').trim();
+    const manualBadgeNumber = String(formData.get('badge_number') ?? '').trim().toUpperCase();
     const departmentId = String(formData.get('department_id') ?? '').trim();
     const departmentCode = String(formData.get('department_code') ?? '').trim().toUpperCase();
     const role = String(formData.get('role') ?? '').trim();
+    const postingLocation = String(formData.get('posting_location') ?? '').trim();
+    const phone = String(formData.get('phone') ?? '').trim();
     const employmentDate = String(formData.get('employment_date') ?? '').trim();
     const photo = formData.get('photo') as File | null;
     const signature = formData.get('signature') as File | null;
@@ -116,13 +119,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ---- Generate the staff ID number ----
-    const staffIdNumber = await generateStaffIdNumber(
-      supabase,
-      organization.id,
-      organization.slug,
-      departmentCode
-    );
+    // ---- Staff ID number: use what was typed in, or generate one ----
+    // Badge number is a legit manual input (e.g. an officer who already
+    // has a physical badge predating this system) -- leaving it blank
+    // falls back to the existing auto-generated <ORG>-<DEPT>-<YEAR>-<SEQ>
+    // scheme, unchanged from before this field existed.
+    const staffIdNumber =
+      manualBadgeNumber ||
+      (await generateStaffIdNumber(supabase, organization.id, organization.slug, departmentCode));
 
     // ---- Insert the record ----
     const { data, error } = await supabase
@@ -135,6 +139,8 @@ export async function POST(req: NextRequest) {
         staff_id_number: staffIdNumber,
         department_id: departmentId,
         role,
+        posting_location: postingLocation || null,
+        phone: phone || null,
         employment_date: employmentDate,
         photo_path: `photos/${photoFileName}`,
         signature_path: signatureFileName ? `signatures/${signatureFileName}` : null,
@@ -144,6 +150,12 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (error) {
+      if (error.code === '23505') {
+        return NextResponse.json(
+          { success: false, message: `Badge number ${staffIdNumber} is already in use.` },
+          { status: 400 }
+        );
+      }
       throw new Error(`Failed to save staff record: ${error.message}`);
     }
 
